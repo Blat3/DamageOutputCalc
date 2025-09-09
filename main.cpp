@@ -1,23 +1,18 @@
 
 #include <iostream>
 #include <random>
-#include <Windows.h>
 #include <map>
 
 using namespace std;
 
 random_device rd;  // Obtain a random number from hardware
 default_random_engine eng(rd()); // Seed the generator
-uniform_int_distribution<int> distribution(1, 6);
+uniform_int_distribution<int> distribution(1, 6);//losowanie liczby z przedziału a,b
 
 map<int, int> results;
-map<int, int> averageResults;
-map<int, double> hitPercentage;
-map<int, double> woundPercentage;
-map<int, double> damagePercentage;
+map<int, double> hitPercentage,woundPercentage,damagePercentage;
 
 int sum, succeses;
-float avgSum;
 
 double maxMap(map<int, double> Percentage) {
 	double max=0,
@@ -50,6 +45,28 @@ void diceThrow(int number, int threshold) {
 	}
 }
 
+int woundLogic(int strength, int toughness)
+{
+    double division=strength/toughness;
+    if(strength==toughness)
+    {
+        return 4;
+    }
+    else if(1<division && division<2)
+    {
+        return 3;
+    }
+    else if(division>=2)
+    {
+        return 2;
+    }
+    else if(0.5<division  && division<1)
+    {
+        return 5;
+    }
+    else return 6;
+}
+
 void simulation(int attacks, int threshold1, int threshold2, int threshold3, int loops) {
 	int newAttacks;
 	for (int i = 0;i < loops;i++) {
@@ -80,19 +97,22 @@ void simulation(int attacks, int threshold1, int threshold2, int threshold3, int
 
 int main()
 {
-	int attacks;
-	int threshold1, threshold2, threshold3;
+	int attacks,strength,toughness;
+	int threshold1, threshold3;
 	int loops;
 	cout << "Number of attacks: ";
 	cin >> attacks;
 	cout << "Hit on: ";
 	cin >> threshold1;
-	cout << "Wound on: ";
-	cin >> threshold2;
+	cout << "Strength of attacker: ";
+	cin >> strength;
+	cout << "Toughness of defender: ";
+	cin >> toughness;
 	cout << "Saves on: ";
 	cin >> threshold3;
 	cout << "Number of simulations: ";
 	cin >> loops;
+	int threshold2=woundLogic(strength,toughness);
 	simulation(attacks, threshold1, threshold2, threshold3, loops);
 
 	cout << "Hit stats: " << endl;
