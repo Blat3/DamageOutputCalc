@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <random>
 #include <map>
@@ -34,9 +33,8 @@ int d6Roll() {
 }
 
 void diceThrow(int number, int threshold) {
-	int temp;
 	for (int i = 0;i < number;i++) {
-		temp = d6Roll();
+		int temp = d6Roll();
 		results[temp] += 1;
 		if (temp>=threshold) {
 			sum += 1;
@@ -52,28 +50,60 @@ int woundLogic(int strength, int toughness)
     {
         return 4;
     }
-    else if(1<division && division<2)
+    if(1<division && division<2)
     {
         return 3;
     }
-    else if(division>=2)
+    if(division>=2)
     {
         return 2;
     }
-    else if(0.5<division  && division<1)
+    if(0.5<division  && division<1)
     {
         return 5;
     }
-    else return 6;
+    return 6;
+}
+
+int invuLogic(int save,int AP,int invu,bool cover) {
+	if (cover && (AP!=0 || save>3)) {
+		if(save+AP-1<invu) {
+			return save+AP-1;
+		}
+		return invu;
+	}
+	if (save+AP<invu) {
+		return save+AP;
+	}
+	return invu;
+}
+
+bool isValidBoolInput()
+{
+	bool decisionOuput=false;
+	char decision;
+	cin >> decision;
+	int temp = int(decision);
+	if(temp>=65 && temp<=90)
+	{
+		temp += 32;
+		decision = char(temp);
+	}
+	if (decision == 'y') { decisionOuput = true; }
+	else if (decision == 'n') { decisionOuput = false; }
+	else {
+		cout << "Invalid input. Please try again" << endl;
+		isValidBoolInput();
+	}
+	return decisionOuput;
 }
 
 void simulation(int attacks, int threshold1, int threshold2, int threshold3, int loops) {
-	int newAttacks;
 	for (int i = 0;i < loops;i++) {
 		succeses = 0;
 		diceThrow(attacks, threshold1);
 		hitPercentage[succeses] += 1;
-		newAttacks = sum;
+		int newAttacks = sum;
 		sum = 0;
 		results.clear();
 		succeses = 0;
@@ -97,22 +127,37 @@ void simulation(int attacks, int threshold1, int threshold2, int threshold3, int
 
 int main()
 {
-	int attacks,strength,toughness;
-	int threshold1, threshold3;
+	bool cover;
+	int attacks,strength,toughness,AP,save;
+	int invuSave=7;
+	int threshold1;
 	int loops;
+
+	//todo zrobić listę broni i zapisywać oraz odczytywać typowe profile np. bolter, melta
+	//port na aplikację
 	cout << "Number of attacks: ";
 	cin >> attacks;
 	cout << "Hit on: ";
 	cin >> threshold1;
 	cout << "Strength of attacker: ";
 	cin >> strength;
+	cout << "AP: ";
+	cin >> AP;
 	cout << "Toughness of defender: ";
 	cin >> toughness;
 	cout << "Saves on: ";
-	cin >> threshold3;
+	cin >> save;
+	cout << "Invunerable save?(y/n): ";
+	if (isValidBoolInput()) {
+		cout <<"What value?: " <<endl;
+		cin >> invuSave;
+	}
+	cout<<"Do you have cover?(y/n): ";
+	cover=isValidBoolInput();
 	cout << "Number of simulations: ";
 	cin >> loops;
 	int threshold2=woundLogic(strength,toughness);
+	int threshold3=invuLogic(save,AP,invuSave,cover);
 	simulation(attacks, threshold1, threshold2, threshold3, loops);
 
 	cout << "Hit stats: " << endl;
@@ -124,4 +169,3 @@ int main()
 	cout << "Damage stats: " << endl;
 	displayStats(damagePercentage, loops);
 }
-
