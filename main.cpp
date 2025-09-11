@@ -11,7 +11,7 @@ uniform_int_distribution<int> distribution(1, 6);//losowanie liczby z przedział
 map<int, int> results;
 map<int, double> hitPercentage,woundPercentage,damagePercentage;
 
-int sum, succeses;
+int sum, succeses, extraLethalDice;
 
 double maxMap(map<int, double> Percentage) {
 	double max=0,
@@ -28,14 +28,30 @@ void displayStats(map<int,double> Percentage,int loops) {
 }
 
 int d6Roll() {
-	int random_number = distribution(eng);
-	return random_number;
+	return distribution(eng);
 }
 
 void diceThrow(int number, int threshold) {
 	for (int i = 0;i < number;i++) {
 		int temp = d6Roll();
 		results[temp] += 1;
+		if (temp>=threshold) {
+			sum += 1;
+			succeses += 1;
+		}
+	}
+}
+
+void hitDiceThrow(int number, int threshold,bool lethal,bool sustain,int crit) {
+	for (int i = 0;i < number;i++) {
+		int temp = d6Roll();
+		results[temp] += 1;
+		if (sustain && temp==crit) {
+			sum+=1;
+		}
+		if (lethal && temp==crit) {
+			extraLethalDice+=1;
+		}
 		if (temp>=threshold) {
 			sum += 1;
 			succeses += 1;
@@ -98,10 +114,11 @@ bool isValidBoolInput()
 	return decisionOuput;
 }
 
-void simulation(int attacks, int threshold1, int threshold2, int threshold3, int loops) {
+void simulation(int attacks,bool lethal, bool sustain, int threshold1, int threshold2, int threshold3, int loops) {
 	for (int i = 0;i < loops;i++) {
 		succeses = 0;
-		diceThrow(attacks, threshold1);
+		extraLethalDice=0;
+		hitDiceThrow(attacks, threshold1,lethal,sustain,6);
 		hitPercentage[succeses] += 1;
 		int newAttacks = sum;
 		sum = 0;
@@ -109,7 +126,7 @@ void simulation(int attacks, int threshold1, int threshold2, int threshold3, int
 		succeses = 0;
 		diceThrow(newAttacks, threshold2);
 		woundPercentage[succeses] += 1;
-		newAttacks = sum;
+		newAttacks = sum+extraLethalDice;
 		sum = 0;
 		results.clear();
 		succeses=0;
@@ -143,6 +160,10 @@ int main()
 	cin >> strength;
 	cout << "AP: ";
 	cin >> AP;
+	cout<<"Lethal hits?(y/n): ";
+	bool lethalHits=isValidBoolInput();
+	cout<<"Sustain hits?(y/n): ";
+	bool sustainHits=isValidBoolInput();
 	cout << "Toughness of defender: ";
 	cin >> toughness;
 	cout << "Saves on: ";
@@ -158,7 +179,7 @@ int main()
 	cin >> loops;
 	int threshold2=woundLogic(strength,toughness);
 	int threshold3=invuLogic(save,AP,invuSave,cover);
-	simulation(attacks, threshold1, threshold2, threshold3, loops);
+	simulation(attacks, lethalHits, sustainHits, threshold1, threshold2, threshold3, loops);
 
 	cout << "Hit stats: " << endl;
 	displayStats(hitPercentage, loops);
