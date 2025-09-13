@@ -19,9 +19,10 @@ double maxMap(std::map<int, double> Percentage) {
         if (it.second > max){max=it.second; maxIndex=it.first;}
     return maxIndex;
 }
+
 void displayStats(std::map<int,double> Percentage,int loops) {
     for (auto it : Percentage)
-        std::cout << it.first << ": " << it.second /loops *100<<"%" << std::endl;
+        std::cout << it.first << ": " << it.second*100 /loops <<"%"<< std::endl;
     std::cout << std::endl;
     std::cout<<"Expected outcome: "<<maxMap(Percentage)<<std::endl;
 }
@@ -31,8 +32,9 @@ int d6Roll() {
 }
 
 void diceThrow(int number, int threshold) {
+    int temp;
     for (int i = 0;i < number;i++) {
-        int temp = d6Roll();
+        temp = d6Roll();
         results[temp] += 1;
         if (temp>=threshold) {
             sum += 1;
@@ -60,24 +62,24 @@ void hitDiceThrow(int number, int threshold,bool lethal,bool sustain,int crit) {
 
 int woundLogic(int strength, int toughness)
 {
-    double division=strength/toughness;
     if(strength==toughness)
     {
         return 4;
     }
-    if(1<division && division<2)
+    if(strength>toughness && strength<2*toughness)
     {
         return 3;
     }
-    if(division>=2)
+    if(strength>2*toughness)
     {
         return 2;
     }
-    if(0.5<division  && division<1)
+    if(strength<toughness && 2*strength>toughness)
     {
         return 5;
     }
-    return 6;
+    if (2*strength<toughness)
+    {return 6;}
 }
 
 int invuLogic(int save,int AP,int invu,bool cover) {
@@ -114,27 +116,28 @@ bool isValidBoolInput()
 }
 
 void simulation(int attacks,bool lethal, bool sustain, int threshold1, int threshold2, int threshold3, int loops) {
+    int newAttacks;
     for (int i = 0;i < loops;i++) {
         succeses = 0;
         extraLethalDice=0;
         hitDiceThrow(attacks, threshold1,lethal,sustain,6);
         hitPercentage[succeses] += 1;
-        int newAttacks = sum;
+        newAttacks = sum;
         sum = 0;
-        results.clear();
         succeses = 0;
+        results.clear();
         diceThrow(newAttacks, threshold2);
         woundPercentage[succeses] += 1;
         newAttacks = sum+extraLethalDice;
         sum = 0;
-        results.clear();
         succeses=0;
+        results.clear();
+
         for (int j = 0;j < newAttacks;j++) {
             int temp = d6Roll();
             results[temp] += 1;
             if (temp < threshold3) {
                 succeses+= 1;
-                sum += 1;
             }
         }
         damagePercentage[succeses] += 1;
